@@ -1,0 +1,32 @@
+name: Build Package
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run build in Arch Linux container
+        uses: addnab/docker-run-action@v3
+        with:
+          image: archlinux:base
+          options: --privileged  # Якщо потрібно, наприклад, для використання fakeroot
+          run: |
+            pacman -Sy --noconfirm base-devel
+            makepkg --syncdeps --noconfirm
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: built-packages
+          path: "*.pkg.tar.zst"

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Icon=google-chrome
+Name=Start nmt
+Type=Application
+Exec=/usr/bin/google-chrome-stable https://second-assessment.net.gov.ua
+StartupNotify=false
+Terminal=false
+Hidden=false

@@ -22,12 +22,18 @@ jobs:
           image: archlinux:base
           options: --privileged
           run: |
+            # Оновлюємо систему та встановлюємо базові пакунки
             pacman -Sy --noconfirm base-devel sudo
+            # Створюємо нового користувача
             useradd -m builder
             echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+            # Копіюємо проект у домашню папку користувача
+            cp -r /github/workspace /home/builder/project
+            chown -R builder:builder /home/builder/project
+            # Переходимо до користувача та виконуємо збірку
             sudo -u builder bash -c "
-              cd /github/workspace
-              makepkg --syncdeps --noconfirm
+              cd /home/builder/project
+              BUILDDIR=/home/builder/project/build makepkg --syncdeps --noconfirm
             "
 
       - name: Upload artifacts

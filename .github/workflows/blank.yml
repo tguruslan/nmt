@@ -1,38 +1,37 @@
-name: Build Package
+name: Build Arch Linux Package
 
 on:
   push:
     branches:
-      - main
+      - main  # Запускати на основній гілці
   pull_request:
-    branches:
-      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Використовуємо контейнер Ubuntu для збірки
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Run build in Arch Linux container
-        uses: addnab/docker-run-action@v3
-        with:
-          image: archlinux:base
-          options: --privileged
-          run: |
-            pacman -Sy --noconfirm base-devel sudo
-            useradd builder
-            echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-            cp -r /github/workspace /tmp
-            sudo -u builder bash -c "
-              cd /tmp
-              BUILDDIR=/tmp/build makepkg --syncdeps --noconfirm
-            "
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y archlinux-keyring devtools
 
-      - name: Upload artifacts
+      - name: Create Arch Linux chroot
+        run: |
+          sudo mkarchroot /tmp/root base-devel
+          sudo cp -r . /tmp/build
+
+      - name: Build package
+        run: |
+          sudo arch-chroot /tmp/root bash -c "
+          cd /tmp/build &&
+          makepkg --syncdeps --noconfirm --cleanbuild"
+
+      - name: Upload package artifact
         uses: actions/upload-artifact@v3
         with:
-          name: built-packages
+          name: built-package
           path: "*.pkg.tar.zst"

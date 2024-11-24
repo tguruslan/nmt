@@ -9,7 +9,7 @@ url="http://192.168.100.10/root/nmt"
 _branch=main
 license=('GPL')
 pkgdesc='nmt'
-depends=('pacman' 'google-chrome' 'rsync')
+depends=('pacman')
 conflicts=('firefox' 'manjaro-hello')
 makedepends=('git')
 source=("git+$url.git#branch=$_branch")
@@ -20,6 +20,7 @@ pkgver() {
 }
 
 package() {
+    depends+=('google-chrome' 'rsync')
     install -d "$pkgdir/etc"
     install -d "$pkgdir/root"
     install -d "$pkgdir/usr"

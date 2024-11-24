@@ -18,7 +18,7 @@ jobs:
     - name: Install dependencies
       run: |
         pacman -Syu --noconfirm
-        pacman -S --noconfirm git base-devel
+        pacman -S --noconfirm git base-devel rsync
         
     - name: Create build user
       run: |

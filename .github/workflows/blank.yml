@@ -1,37 +1,39 @@
-name: Build Arch Linux Package
+name: Build Arch Linux package
 
 on:
   push:
-    branches:
-      - main  # Запускати на основній гілці
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Використовуємо контейнер Ubuntu для збірки
-
+    runs-on: ubuntu-latest
+    container: 
+      image: archlinux:base-devel
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y archlinux-keyring devtools
-
-      - name: Create Arch Linux chroot
-        run: |
-          sudo mkarchroot /tmp/root base-devel
-          sudo cp -r . /tmp/build
-
-      - name: Build package
-        run: |
-          sudo arch-chroot /tmp/root bash -c "
-          cd /tmp/build &&
-          makepkg --syncdeps --noconfirm --cleanbuild"
-
-      - name: Upload package artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: built-package
-          path: "*.pkg.tar.zst"
+    - name: Install dependencies
+      run: |
+        pacman -Syu --noconfirm
+        pacman -S --noconfirm git base-devel
+        
+    - name: Create build user
+      run: |
+        useradd -m builder
+        echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+        
+    - name: Build package
+      run: |
+        chmod -R 777 .
+        su builder -c 'cd $GITHUB_WORKSPACE && makepkg -s --noconfirm'
+        
+    - name: Archive package
+      uses: actions/upload-artifact@v4
+      with:
+        name: package
+        path: |
+          *.pkg.tar.zst
+          *.pkg.tar.xz
